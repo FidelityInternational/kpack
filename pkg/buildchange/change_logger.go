@@ -10,9 +10,9 @@ import (
 	"github.com/pivotal/kpack/pkg/apis/build/v1alpha1"
 )
 
-func Log(logger *log.Logger, reasonsStr, changesStr string) error {
-	return NewChangeLogger(logger, reasonsStr, changesStr).Log()
-}
+//func Log(logger *log.Logger, reasonsStr, changesStr string) error {
+//	return NewChangeLogger(logger, reasonsStr, changesStr).Log()
+//}
 
 type ChangeLogger struct {
 	logger     *log.Logger
