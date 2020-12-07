@@ -58,24 +58,43 @@ func testImageSigner(t *testing.T, when spec.G, it spec.S) {
 		})
 
 		it("signs images", func() {
-			notaryDir := filepath.Join("testdata", "notary")
-			reportPath := filepath.Join("testdata", "report.toml")
-
-			err := signer.Sign("https://example.com/notary", notaryDir, reportPath, keychain)
-			require.NoError(t, err)
-
-			require.Len(t, factory.Calls, 2)
-			for i := range factory.Calls {
-				require.Equal(t, "https://example.com/notary", factory.Calls[i].URL)
-				require.Equal(t, data.GUN("example-registry.io/test"), factory.Calls[i].GUN)
+			testCases := [][]string{
+				{
+					filepath.Join("testdata", "notary"),
+					string(data.CanonicalTargetsRole),
+				},
+				{
+					filepath.Join("testdata", "notary-delegation-key"),
+					"test",
+				},
 			}
+			for _, testCase := range testCases {
+				factory.Reset()
 
-			require.Len(t, factory.FakeRepository.PublishedTargets, 2)
-			require.Equal(t, "latest", factory.FakeRepository.PublishedTargets[0].Name)
-			require.Equal(t, "00000000  a1 57 90 64 0a 66 90 aa  17 30 c3 8c f0 a4 40 e2  |.W.d.f...0....@.|\n00000010  aa 44 aa ca 9b 0e 89 31  a9 f2 b0 d7 cc 90 fd 65  |.D.....1.......e|\n", hex.Dump(factory.FakeRepository.PublishedTargets[0].Hashes[notary.SHA256]))
-			require.Equal(t, int64(264), factory.FakeRepository.PublishedTargets[0].Length)
+				notaryDir := testCase[0]
+				reportPath := filepath.Join("testdata", "report.toml")
 
-			require.Equal(t, "other-tag", factory.FakeRepository.PublishedTargets[1].Name)
+				err := signer.Sign("https://example.com/notary", notaryDir, reportPath, keychain)
+				require.NoError(t, err)
+
+				require.Len(t, factory.Calls, 2)
+				for i := range factory.Calls {
+					require.Equal(t, "https://example.com/notary", factory.Calls[i].URL)
+					require.Equal(t, data.GUN("example-registry.io/test"), factory.Calls[i].GUN)
+				}
+
+				require.Len(t, factory.FakeRepository.PublishedTargets, 2)
+				require.Equal(t, "latest", factory.FakeRepository.PublishedTargets[0].Target.Name)
+				require.Equal(t,
+					"00000000  a1 57 90 64 0a 66 90 aa  17 30 c3 8c f0 a4 40 e2  |.W.d.f...0....@.|\n00000010  aa 44 aa ca 9b 0e 89 31  a9 f2 b0 d7 cc 90 fd 65  |.D.....1.......e|\n",
+					hex.Dump(factory.FakeRepository.PublishedTargets[0].Target.Hashes[notary.SHA256]),
+				)
+				require.Equal(t, int64(264), factory.FakeRepository.PublishedTargets[0].Target.Length)
+				require.Equal(t, []data.RoleName{data.RoleName(testCase[1])}, factory.FakeRepository.PublishedTargets[0].Roles)
+
+				require.Equal(t, "other-tag", factory.FakeRepository.PublishedTargets[1].Target.Name)
+				require.Equal(t, []data.RoleName{data.RoleName(testCase[1])}, factory.FakeRepository.PublishedTargets[1].Roles)
+			}
 		})
 
 		it("validates the GUN is uniform for all tags", func() {
@@ -106,6 +125,11 @@ type FakeRepositoryFactory struct {
 	FakeRepository *FakeRepository
 }
 
+func (f *FakeRepositoryFactory) Reset() {
+	f.Calls = []FakeRepositoryFactoryCall{}
+	f.FakeRepository = nil
+}
+
 func (f *FakeRepositoryFactory) GetRepository(url string, gun data.GUN, _ storage.RemoteStore, _ signed.CryptoService) (Repository, error) {
 	if f.FakeRepository == nil {
 		f.FakeRepository = &FakeRepository{}
@@ -117,11 +141,19 @@ func (f *FakeRepositoryFactory) GetRepository(url string, gun data.GUN, _ storag
 	return f.FakeRepository, nil
 }
 
-type FakeRepository struct {
-	PublishedTargets []*notaryclient.Target
+type TargetAndRoles struct {
+	Target *notaryclient.Target
+	Roles  []data.RoleName
 }
 
-func (f *FakeRepository) PublishTarget(target *notaryclient.Target) error {
-	f.PublishedTargets = append(f.PublishedTargets, target)
+type FakeRepository struct {
+	PublishedTargets []TargetAndRoles
+}
+
+func (f *FakeRepository) PublishTarget(target *notaryclient.Target, roles ...data.RoleName) error {
+	f.PublishedTargets = append(f.PublishedTargets, TargetAndRoles{
+		Target: target,
+		Roles:  roles,
+	})
 	return nil
 }

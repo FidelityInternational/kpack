@@ -45,8 +45,8 @@ type RemoteRepository struct {
 	repo client.Repository
 }
 
-func (r *RemoteRepository) PublishTarget(target *client.Target) error {
-	err := r.repo.AddTarget(target, data.CanonicalTargetsRole)
+func (r *RemoteRepository) PublishTarget(target *client.Target, roles ...data.RoleName) error {
+	err := r.repo.AddTarget(target, roles...)
 	if err != nil {
 		return err
 

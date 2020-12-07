@@ -32,7 +32,7 @@ type RepositoryFactory interface {
 }
 
 type Repository interface {
-	PublishTarget(target *client.Target) error
+	PublishTarget(target *client.Target, roles ...data.RoleName) error
 }
 
 type ImageSigner struct {
@@ -70,13 +70,19 @@ func (s *ImageSigner) Sign(url, notarySecretDir, reportFilePath string, keychain
 		return err
 	}
 
+	var roles []data.RoleName
+	keys := cryptoService.ListAllKeys()
+	for _, role := range keys {
+		roles = append(roles, role)
+	}
+
 	for _, target := range targets {
 		repo, err := s.Factory.GetRepository(url, gun, remoteStore, cryptoService)
 		if err != nil {
 			return err
 		}
 
-		err = repo.PublishTarget(target)
+		err = repo.PublishTarget(target, roles...)
 		if err != nil {
 			return err
 		}
