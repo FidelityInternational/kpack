@@ -133,8 +133,9 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
 			}
 
 			expectedChanges := testhelpers.CompactJSON(`
-{
-  "CONFIG": {
+[
+  {
+    "reason": "CONFIG",
     "old": {
       "env": [
         {
@@ -160,7 +161,7 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
       }
     }
   }
-}`)
+]`)
 
 			needed, err := buildDeterminer.IsBuildNeeded()
 			assert.NoError(t, err)
@@ -180,8 +181,9 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
 			}
 
 			expectedChanges := testhelpers.CompactJSON(`
-{
-  "CONFIG": {
+[
+  {
+    "reason": "CONFIG",
     "old": {
       "resources": {},
       "bindings": [
@@ -209,7 +211,7 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
       }
     }
   }
-}`)
+]`)
 
 			needed, err := buildDeterminer.IsBuildNeeded()
 			assert.NoError(t, err)
@@ -244,11 +246,13 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
 			}
 
 			expectedChanges := testhelpers.CompactJSON(`
-{
-  "TRIGGER": {
-    "new": "2020-11-20 22:46:37.570641 -0500 EST m=+0.023483867"
+[
+  {
+	"reason": "TRIGGER",
+    "old": "",
+    "new": "A new build was manually triggered on Fri, 20 Nov 2020 22:46:37 -0500"
   }
-}`)
+]`)
 
 			needed, err := buildDeterminer.IsBuildNeeded()
 			assert.NoError(t, err)
@@ -278,8 +282,9 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
 				}
 
 				expectedChanges := testhelpers.CompactJSON(`
-{
-  "BUILDPACK": {
+[
+  {
+    "reason": "BUILDPACK",
     "old": [
       {
         "id": "buildpack.matches",
@@ -293,7 +298,7 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
       }
     ]
   }
-}`)
+]`)
 
 				needed, err := buildDeterminer.IsBuildNeeded()
 				assert.NoError(t, err)
@@ -309,8 +314,9 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
 				}
 
 				expectedChanges := testhelpers.CompactJSON(`
-{
-  "BUILDPACK": {
+[
+  {
+    "reason": "BUILDPACK",
     "old": [
       {
         "id": "buildpack.matches",
@@ -319,7 +325,7 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
     ],
     "new": null
   }
-}`)
+]`)
 
 				needed, err := buildDeterminer.IsBuildNeeded()
 				assert.NoError(t, err)
@@ -332,12 +338,13 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
 				builder.LatestRunImage = "some.registry.io/run-image@sha256:a1aa3da2a80a775df55e880b094a1a8de19b919435ad0c71c29a0983d64e65db"
 
 				expectedChanges := testhelpers.CompactJSON(`
-{
-  "STACK": {
+[
+  {
+    "reason": "STACK",
     "old": "sha256:67e3de2af270bf09c02e9a644aeb7e87e6b3c049abe6766bf6b6c3728a83e7fb",
     "new": "sha256:a1aa3da2a80a775df55e880b094a1a8de19b919435ad0c71c29a0983d64e65db"
   }
-}`)
+]`)
 
 				needed, err := buildDeterminer.IsBuildNeeded()
 				assert.NoError(t, err)
@@ -352,8 +359,9 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
 				sourceResolver.Status.Source.Git.URL = "different"
 
 				expectedChanges := testhelpers.CompactJSON(`
-{
-  "CONFIG": {
+[
+  {
+    "reason": "CONFIG",
     "old": {
       "resources": {},
       "source": {
@@ -373,7 +381,7 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
       }
     }
   }
-}`)
+]`)
 
 				needed, err := buildDeterminer.IsBuildNeeded()
 				assert.NoError(t, err)
@@ -386,8 +394,9 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
 				sourceResolver.Status.Source.Git.SubPath = "different"
 
 				expectedChanges := testhelpers.CompactJSON(`
-{
-  "CONFIG": {
+[
+  {
+    "reason": "CONFIG",
     "old": {
       "resources": {},
       "source": {
@@ -408,7 +417,7 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
       }
     }
   }
-}`)
+]`)
 
 				needed, err := buildDeterminer.IsBuildNeeded()
 				assert.NoError(t, err)
@@ -421,12 +430,13 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
 				sourceResolver.Status.Source.Git.Revision = "different"
 
 				expectedChanges := testhelpers.CompactJSON(`
-{
-  "COMMIT": {
+[
+  {
+    "reason": "COMMIT",
     "old": "revision",
     "new": "different"
   }
-}`)
+]`)
 
 				needed, err := buildDeterminer.IsBuildNeeded()
 				assert.NoError(t, err)
@@ -507,8 +517,9 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
 				}
 
 				expectedChanges := testhelpers.CompactJSON(`
-{
-  "CONFIG": {
+[
+  {
+    "reason": "CONFIG",
     "old": {
       "env": [
         {
@@ -540,7 +551,7 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
       }
     }
   }
-}`)
+]`)
 
 				needed, err := buildDeterminer.IsBuildNeeded()
 				assert.NoError(t, err)
@@ -553,12 +564,13 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
 				sourceResolver.Status.Source.Git.Revision = "different"
 
 				expectedChanges := testhelpers.CompactJSON(`
-{
-  "COMMIT": {
+[
+  {
+    "reason": "COMMIT",
     "old": "revision",
     "new": "different"
   }
-}`)
+]`)
 
 				needed, err := buildDeterminer.IsBuildNeeded()
 				assert.NoError(t, err)
@@ -583,8 +595,9 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
 
 			it("true for different BlobURL", func() {
 				expectedChanges := testhelpers.CompactJSON(`
-{
-  "CONFIG": {
+[
+  {
+    "reason": "CONFIG",
     "old": {
       "resources": {},
       "source": {
@@ -602,7 +615,7 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
       }
     }
   }
-}`)
+]`)
 
 				needed, err := buildDeterminer.IsBuildNeeded()
 				assert.NoError(t, err)
@@ -615,8 +628,9 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
 				sourceResolver.Status.Source.Blob.SubPath = "different"
 
 				expectedChanges := testhelpers.CompactJSON(`
-{
-  "CONFIG": {
+[
+  {
+    "reason": "CONFIG",
     "old": {
       "resources": {},
       "source": {
@@ -635,7 +649,7 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
       }
     }
   }
-}`)
+]`)
 
 				needed, err := buildDeterminer.IsBuildNeeded()
 				assert.NoError(t, err)
@@ -660,8 +674,9 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
 
 			it("true for different RegistryImage", func() {
 				expectedChanges := testhelpers.CompactJSON(`
-{
-  "CONFIG": {
+[
+  {
+    "reason": "CONFIG",
     "old": {
       "resources": {},
       "source": {
@@ -679,7 +694,7 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
       }
     }
   }
-}`)
+]`)
 
 				needed, err := buildDeterminer.IsBuildNeeded()
 				assert.NoError(t, err)
@@ -691,8 +706,9 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
 			it("true for different Registry SubPath", func() {
 				sourceResolver.Status.Source.Registry.SubPath = "different"
 				expectedChanges := testhelpers.CompactJSON(`
-{
-  "CONFIG": {
+[
+  {
+    "reason": "CONFIG",
     "old": {
       "resources": {},
       "source": {
@@ -711,7 +727,7 @@ func testImageBuilds(t *testing.T, when spec.G, it spec.S) {
       }
     }
   }
-}`)
+]`)
 
 				needed, err := buildDeterminer.IsBuildNeeded()
 				assert.NoError(t, err)
