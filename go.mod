@@ -29,6 +29,7 @@ require (
 	k8s.io/code-generator v0.18.6
 	k8s.io/kube-openapi v0.0.0-20200410145947-bcb3869e6f29
 	knative.dev/pkg v0.0.0-20200702222342-ea4d6e985ba0
+	github.com/theupdateframework/notary v0.6.2-0.20200804143915-84287fd8df4f
 )
 
 replace (

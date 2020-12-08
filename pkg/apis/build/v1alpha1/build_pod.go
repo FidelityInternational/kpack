@@ -3,6 +3,8 @@ package v1alpha1
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -86,6 +88,14 @@ var (
 	}
 )
 
+func get_value_from_envs(env string) string {
+	if value := os.Getenv(env); value != "" {
+		return value
+	} else {
+		return os.Getenv(strings.ToUpper(env))
+	}
+}
+
 func (b *Build) BuildPod(config BuildPodImages, secrets []corev1.Secret, bc BuildPodBuilderConfig) (*corev1.Pod, error) {
 	if bc.unsupported() {
 		return nil, errors.Errorf("incompatible builder platform API version: %s", bc.PlatformAPI)
@@ -111,7 +121,34 @@ func (b *Build) BuildPod(config BuildPodImages, secrets []corev1.Secret, bc Buil
 		MountPath: sourceVolume.MountPath,
 		SubPath:   b.Spec.Source.SubPath, // empty string is a nop
 	}
+	https_proxy := get_value_from_envs("https_proxy")
+	http_proxy := get_value_from_envs("http_proxy")
+	no_proxy := get_value_from_envs("no_proxy")
 
+	httpProxy := corev1.EnvVar{
+		Name:  "http_proxy",
+		Value: http_proxy,
+	}
+	httpProxyUpper := corev1.EnvVar{
+		Name:  "HTTP_PROXY",
+		Value: http_proxy,
+	}
+	httpsProxy := corev1.EnvVar{
+		Name:  "https_proxy",
+		Value: https_proxy,
+	}
+	httpsProxyUpper := corev1.EnvVar{
+		Name:  "HTTPS_PROXY",
+		Value: https_proxy,
+	}
+	noProxy := corev1.EnvVar{
+		Name:  "no_proxy",
+		Value: no_proxy,
+	}
+	noProxyUpper := corev1.EnvVar{
+		Name:  "NO_PROXY",
+		Value: no_proxy,
+	}
 	return &corev1.Pod{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      b.PodName(),
@@ -166,6 +203,12 @@ func (b *Build) BuildPod(config BuildPodImages, secrets []corev1.Secret, bc Buil
 								Name:  "RUN_IMAGE",
 								Value: bc.RunImage,
 							},
+							httpProxy,
+							httpProxyUpper,
+							httpsProxy,
+							httpsProxyUpper,
+							noProxy,
+							noProxyUpper,
 						),
 						ImagePullPolicy: corev1.PullIfNotPresent,
 						WorkingDir:      "/workspace",
@@ -190,6 +233,15 @@ func (b *Build) BuildPod(config BuildPodImages, secrets []corev1.Secret, bc Buil
 							"-group=/layers/group.toml",
 							"-plan=/layers/plan.toml",
 						},
+						Env: append(
+							b.Spec.Source.Source().BuildEnvVars(),
+							httpProxy,
+							httpProxyUpper,
+							httpsProxy,
+							httpsProxyUpper,
+							noProxy,
+							noProxyUpper,
+						),
 						VolumeMounts: append([]corev1.VolumeMount{
 							layersVolume,
 							platformVolume,
@@ -221,9 +273,16 @@ func (b *Build) BuildPod(config BuildPodImages, secrets []corev1.Secret, bc Buil
 							homeVolume,
 							cacheVolume,
 						},
-						Env: []corev1.EnvVar{
+						Env: append(
+							b.Spec.Source.Source().BuildEnvVars(),
 							homeEnv,
-						},
+							httpProxy,
+							httpProxyUpper,
+							httpsProxy,
+							httpsProxyUpper,
+							noProxy,
+							noProxyUpper,
+						),
 						ImagePullPolicy: corev1.PullIfNotPresent,
 					},
 				)
@@ -237,6 +296,15 @@ func (b *Build) BuildPod(config BuildPodImages, secrets []corev1.Secret, bc Buil
 							"-layers=/layers",
 							"-cache-dir=/cache",
 						},
+						Env: append(
+							b.Spec.Source.Source().BuildEnvVars(),
+							httpProxy,
+							httpProxyUpper,
+							httpsProxy,
+							httpsProxyUpper,
+							noProxy,
+							noProxyUpper,
+						),
 						VolumeMounts: []corev1.VolumeMount{
 							layersVolume,
 							cacheVolume,
@@ -255,6 +323,15 @@ func (b *Build) BuildPod(config BuildPodImages, secrets []corev1.Secret, bc Buil
 							"-group=/layers/group.toml",
 							"-plan=/layers/plan.toml",
 						},
+						Env: append(
+							b.Spec.Source.Source().BuildEnvVars(),
+							httpProxy,
+							httpProxyUpper,
+							httpsProxy,
+							httpsProxyUpper,
+							noProxy,
+							noProxyUpper,
+						),
 						VolumeMounts: append([]corev1.VolumeMount{
 							layersVolume,
 							platformVolume,
@@ -282,9 +359,16 @@ func (b *Build) BuildPod(config BuildPodImages, secrets []corev1.Secret, bc Buil
 								homeVolume,
 								cacheVolume,
 							},
-							Env: []corev1.EnvVar{
+							Env: append(
+								b.Spec.Source.Source().BuildEnvVars(),
 								homeEnv,
-							},
+								httpProxy,
+								httpProxyUpper,
+								httpsProxy,
+								httpsProxyUpper,
+								noProxy,
+								noProxyUpper,
+							),
 							ImagePullPolicy: corev1.PullIfNotPresent,
 						},
 					)
@@ -308,9 +392,16 @@ func (b *Build) BuildPod(config BuildPodImages, secrets []corev1.Secret, bc Buil
 								homeVolume,
 								cacheVolume,
 							},
-							Env: []corev1.EnvVar{
+							Env: append(
+								b.Spec.Source.Source().BuildEnvVars(),
 								homeEnv,
-							},
+								httpProxy,
+								httpProxyUpper,
+								httpsProxy,
+								httpsProxyUpper,
+								noProxy,
+								noProxyUpper,
+							),
 							ImagePullPolicy: corev1.PullIfNotPresent,
 						},
 					)
